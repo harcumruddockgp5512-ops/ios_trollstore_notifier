@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- TrollStore 巨魔无限制后台常驻私有特权 -->
+    <key>com.apple.multitasking.unlimited</key>
+    <true/>
+    <key>com.apple.private.multitasking.unlimited</key>
+    <true/>
+    
+    <!-- 突破沙盒限制 (巨魔特权) -->
+    <key>com.apple.private.security.no-sandbox</key>
+    <true/>
+    <key>com.apple.private.security.container-required</key>
+    <false/>
+
+    <!-- 系统通知特权 -->
+    <key>aps-environment</key>
+    <string>development</string>
+</dict>
+</plist>

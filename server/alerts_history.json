@@ -1,0 +1,362 @@
+[
+  {
+    "id": "alt_1793199267315",
+    "timestamp": 1793199267.3152156,
+    "time_str": "22:54:27",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.4025,
+    "change_24h": 101.22,
+    "volume_24h": 494437192.72291,
+    "badges": [
+      "🚀 当日暴涨 +101.2%",
+      "📊 24h成交量 $494.4M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +101.22%！现价: $1.4025，24h 成交额: $494.44M USDT"
+  },
+  {
+    "id": "alt_1793198961357",
+    "timestamp": 1793198961.3575172,
+    "time_str": "22:49:21",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.4045,
+    "change_24h": 98.38,
+    "volume_24h": 494105024.90071,
+    "badges": [
+      "🚀 当日暴涨 +98.4%",
+      "📊 24h成交量 $494.1M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +98.38%！现价: $1.4045，24h 成交额: $494.11M USDT"
+  },
+  {
+    "id": "alt_1793198657092",
+    "timestamp": 1793198657.092869,
+    "time_str": "22:44:17",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3918,
+    "change_24h": 96.06,
+    "volume_24h": 492098378.08271,
+    "badges": [
+      "🚀 当日暴涨 +96.1%",
+      "📊 24h成交量 $492.1M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +96.06%！现价: $1.3918，24h 成交额: $492.10M USDT"
+  },
+  {
+    "id": "alt_1793198354570",
+    "timestamp": 1793198354.5704,
+    "time_str": "22:39:14",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3964,
+    "change_24h": 96.01,
+    "volume_24h": 491337779.74252,
+    "badges": [
+      "🚀 当日暴涨 +96.0%",
+      "📊 24h成交量 $491.3M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +96.01%！现价: $1.3964，24h 成交额: $491.34M USDT"
+  },
+  {
+    "id": "alt_1793198044813",
+    "timestamp": 1793198044.8132827,
+    "time_str": "22:34:04",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3621,
+    "change_24h": 110.14,
+    "volume_24h": 489073509.22699,
+    "badges": [
+      "🚀 当日暴涨 +110.1%",
+      "📊 24h成交量 $489.1M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +110.14%！现价: $1.3621，24h 成交额: $489.07M USDT"
+  },
+  {
+    "id": "alt_1793197736681",
+    "timestamp": 1793197736.6812236,
+    "time_str": "22:28:56",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.343,
+    "change_24h": 116.96,
+    "volume_24h": 486557440.17818,
+    "badges": [
+      "🚀 当日暴涨 +117.0%",
+      "📊 24h成交量 $486.6M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +116.96%！现价: $1.343，24h 成交额: $486.56M USDT"
+  },
+  {
+    "id": "alt_1793197415105",
+    "timestamp": 1793197415.1054127,
+    "time_str": "22:23:35",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.343,
+    "change_24h": 116.96,
+    "volume_24h": 486557440.17818,
+    "badges": [
+      "🚀 当日暴涨 +117.0%",
+      "📊 24h成交量 $486.6M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +116.96%！现价: $1.343，24h 成交额: $486.56M USDT"
+  },
+  {
+    "id": "alt_1793197090682",
+    "timestamp": 1793197090.6829972,
+    "time_str": "22:18:10",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3553,
+    "change_24h": 117.86,
+    "volume_24h": 484863123.09876,
+    "badges": [
+      "🚀 当日暴涨 +117.9%",
+      "📊 24h成交量 $484.9M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +117.86%！现价: $1.3553，24h 成交额: $484.86M USDT"
+  },
+  {
+    "id": "alt_1793196776764",
+    "timestamp": 1793196776.7646568,
+    "time_str": "22:12:56",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3526,
+    "change_24h": 106.63,
+    "volume_24h": 483688362.91536,
+    "badges": [
+      "🚀 当日暴涨 +106.6%",
+      "📊 24h成交量 $483.7M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +106.63%！现价: $1.3526，24h 成交额: $483.69M USDT"
+  },
+  {
+    "id": "alt_1793196472274",
+    "timestamp": 1793196472.2742012,
+    "time_str": "22:07:52",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3167,
+    "change_24h": 88.21,
+    "volume_24h": 482784218.34785,
+    "badges": [
+      "🚀 当日暴涨 +88.2%",
+      "📊 24h成交量 $482.8M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +88.21%！现价: $1.3167，24h 成交额: $482.78M USDT"
+  },
+  {
+    "id": "alt_1793196164648",
+    "timestamp": 1793196164.6489196,
+    "time_str": "22:02:44",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.3116,
+    "change_24h": 83.26,
+    "volume_24h": 483113539.52066,
+    "badges": [
+      "🚀 当日暴涨 +83.3%",
+      "📊 24h成交量 $483.1M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +83.26%！现价: $1.3116，24h 成交额: $483.11M USDT"
+  },
+  {
+    "id": "alt_1793196046738",
+    "timestamp": 1793196046.738845,
+    "time_str": "22:00:46",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.284,
+    "change_24h": 86.57,
+    "volume_24h": 483014153.14584,
+    "badges": [
+      "🚀 当日暴涨 +86.6%",
+      "📊 24h成交量 $483.0M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +86.57%！现价: $1.284，24h 成交额: $483.01M USDT"
+  },
+  {
+    "id": "alt_1793196002228",
+    "timestamp": 1793196002.2286718,
+    "time_str": "22:00:02",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.2675,
+    "change_24h": 93.39,
+    "volume_24h": 483192540.9563,
+    "badges": [
+      "🚀 当日暴涨 +93.4%",
+      "📊 24h成交量 $483.2M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +93.39%！现价: $1.2675，24h 成交额: $483.19M USDT"
+  },
+  {
+    "id": "alt_1793195440249",
+    "timestamp": 1793195440.2492425,
+    "time_str": "21:50:40",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.2219,
+    "change_24h": 108.52,
+    "volume_24h": 475761942.71023,
+    "badges": [
+      "🚀 当日暴涨 +108.5%",
+      "📊 24h成交量 $475.8M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +108.52%！现价: $1.2219，24h 成交额: $475.76M USDT"
+  },
+  {
+    "id": "alt_1793195113719",
+    "timestamp": 1793195113.7193384,
+    "time_str": "21:45:13",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.2113,
+    "change_24h": 108.23,
+    "volume_24h": 473809957.89285,
+    "badges": [
+      "🚀 当日暴涨 +108.2%",
+      "📊 24h成交量 $473.8M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +108.23%！现价: $1.2113，24h 成交额: $473.81M USDT"
+  },
+  {
+    "id": "alt_1793194812989",
+    "timestamp": 1793194812.9896896,
+    "time_str": "21:40:12",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.2412,
+    "change_24h": 116.09,
+    "volume_24h": 470873545.24237,
+    "badges": [
+      "🚀 当日暴涨 +116.1%",
+      "📊 24h成交量 $470.9M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +116.09%！现价: $1.2412，24h 成交额: $470.87M USDT"
+  },
+  {
+    "id": "alt_1793194373714",
+    "timestamp": 1793194373.7149029,
+    "time_str": "21:32:53",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "CREAMUSDT",
+    "is_perp": false,
+    "price": 2.1,
+    "change_24h": 65.35,
+    "volume_24h": 276098.07379,
+    "badges": [
+      "🚀 当日暴涨 +65.3%",
+      "📊 24h成交量 $0.3M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[CREAMUSDT] 当日暴涨达到 +65.35%！现价: $2.1，24h 成交额: $0.28M USDT"
+  },
+  {
+    "id": "alt_1793194364007",
+    "timestamp": 1793194364.0074039,
+    "time_str": "21:32:44",
+    "date_str": "2026-10-28",
+    "is_read": false,
+    "rule_id": "strategy.daily_pump_50",
+    "rule_name": "当日暴拉突破 +50%",
+    "symbol": "EVAAUSDT",
+    "is_perp": true,
+    "price": 1.2145,
+    "change_24h": 117.73,
+    "volume_24h": 466806633.63722,
+    "badges": [
+      "🚀 当日暴涨 +117.7%",
+      "📊 24h成交量 $466.8M"
+    ],
+    "severity": "CRITICAL",
+    "message": "[EVAAUSDT] 当日暴涨达到 +117.73%！现价: $1.2145，24h 成交额: $466.81M USDT"
+  }
+]

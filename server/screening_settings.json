@@ -1,0 +1,14 @@
+{
+  "monitor_all": true,
+  "market_types": [
+    "spot",
+    "usdt_perp"
+  ],
+  "min_volume_usdt": 1000000.0,
+  "market_cap_rank": "unlimited",
+  "blacklist": [],
+  "enable_push": true,
+  "cooldown_minutes": 5,
+  "enable_sound": true,
+  "enable_vibrate": true
+}
