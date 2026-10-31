@@ -39,8 +39,8 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
   late final WebViewController _controller;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   
-  // 局域网服务器地址，支持在 App 内点齿轮动态修改保存
-  String _serverHost = "192.168.1.2:8899";
+  // FRP 公网穿透地址，出门在手机流量/任何外网下均能秒连与推送！
+  String _serverHost = "47.92.99.47:8081";
   WebSocketChannel? _channel;
   Timer? _reconnectTimer;
   bool _isLoading = true;
