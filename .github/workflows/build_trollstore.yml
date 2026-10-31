@@ -19,6 +19,23 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Generate Complete iOS Project Template
+        run: |
+          # 备份当前的自定义 lib、pubspec 和 Runner 配置
+          mkdir -p /tmp/my_backup
+          cp -r mobile_app/lib /tmp/my_backup/
+          cp mobile_app/pubspec.yaml /tmp/my_backup/
+          cp -r mobile_app/ios/Runner /tmp/my_backup/
+
+          # 创建完整的 Flutter iOS 项目模版 (包含 Xcode 完整工程文件)
+          rm -rf mobile_app
+          flutter create --platforms=ios --org com.antigravity.crypto mobile_app
+
+          # 将自定义代码与 TrollStore 特殊权限配置无缝覆盖回去
+          cp -r /tmp/my_backup/lib mobile_app/
+          cp /tmp/my_backup/pubspec.yaml mobile_app/
+          cp -r /tmp/my_backup/Runner/* mobile_app/ios/Runner/
+
       - name: Install Dependencies
         working-directory: mobile_app
         run: flutter pub get
