@@ -43,16 +43,21 @@ jobs:
       - name: Build iOS App (No Codesign for TrollStore)
         working-directory: mobile_app
         run: |
-          # 1. 生成 Flutter iOS 基础依赖与资源 (免签模式)
-          flutter build ios --config-only
+          # 1. 编译 Flutter 产物 (AOT 二进制与资源，跳过 codesign 检查)
+          flutter build bundle
 
-          # 2. 注入免证书配置到 project.pbxproj
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual; CODE_SIGN_IDENTITY = ""; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = ""; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
+          # 2. 生成原生 iOS 编译配置
+          flutter precache --ios
+          cd ios
+          pod install
 
-          # 3. 使用 xcodebuild 编译 ARM64 真机二进制
-          xcodebuild build \
-            -workspace ios/Runner.xcworkspace \
+          # 3. 彻底覆盖 Xcode 项目的签名设定为 NO
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = ""; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' Runner.xcodeproj/project.pbxproj
+
+          # 4. 直接使用 xcodebuild 编译 Release 产物
+          xcodebuild clean build \
+            -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
             -sdk iphoneos \
@@ -60,7 +65,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Package Unsigned TrollStore IPA
         run: |
