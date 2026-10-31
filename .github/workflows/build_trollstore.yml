@@ -43,15 +43,34 @@ jobs:
       - name: Build iOS App (No Codesign for TrollStore)
         working-directory: mobile_app
         run: |
-          # 编译出 Release 版本的 Runner.app 二进制 (纯免签 TrollStore 模式)
-          flutter build ios --release --no-codesign --simulator
+          # 1. 生成 Flutter iOS 基础依赖与资源 (免签模式)
+          flutter build ios --config-only
+
+          # 2. 注入免证书配置到 project.pbxproj
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual; CODE_SIGN_IDENTITY = ""; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = ""; CODE_SIGNING_REQUIRED = NO; CODE_SIGNING_ALLOWED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
+
+          # 3. 使用 xcodebuild 编译 ARM64 真机二进制
+          xcodebuild build \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
       - name: Package Unsigned TrollStore IPA
         run: |
           mkdir -p Payload
-          # 提取编译好的 Release-iphonesimulator 或 iphoneos 目录
-          APP_PATH=$(find mobile_app/build/ios -name "Runner.app" -type d | head -n 1)
-          echo "Found compiled app at: $APP_PATH"
+          # 提取 Xcode 编译好的 Release-iphoneos/Runner.app
+          APP_PATH=$(find mobile_app/build -name "Runner.app" -type d | grep "Release-iphoneos" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find /Users/runner/Library/Developer/Xcode/DerivedData -name "Runner.app" -type d | grep "Release-iphoneos" | head -n 1)
+          fi
+          echo "Packing app from: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -r -y TrollStore_CryptoNotifier.ipa Payload
           rm -rf Payload
