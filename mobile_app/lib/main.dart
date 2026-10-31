@@ -102,8 +102,7 @@ class _MainTabContainerState extends State<MainTabContainer> {
             if (decoded['type'] == 'ANOMALY_ALERT') {
               final alertData = decoded['data'];
               setState(() {
-                _liveFeed.insert(0, AnomalyItem.fromJson(alertData));
-                _alerts.insert(0, alertData);
+                _alerts.insert(0, alertData as Map<String, dynamic>);
               });
             }
           } catch (e) {
