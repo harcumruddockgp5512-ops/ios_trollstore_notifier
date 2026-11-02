@@ -206,19 +206,17 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
                 const Center(
                   child: CircularProgressIndicator(color: Color(0xFFF0B90B)),
                 ),
-              // 右上角浮动轻量配置齿轮 (长按可改 IP，防断连)
+              // 右上角隐形配置热区 (长按可改 IP，防断连，完全透明不挡视觉)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 0,
+                right: 0,
                 child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
                   onLongPress: _showHostDialog,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.wifi_tethering, size: 14, color: Colors.white24),
+                    width: 44,
+                    height: 44,
+                    color: Colors.transparent,
                   ),
                 ),
               ),

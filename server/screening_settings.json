@@ -1,11 +1,11 @@
 {
   "monitor_all": true,
-  "market_types": [
-    "spot",
-    "usdt_perp"
-  ],
-  "min_volume_usdt": 1000000.0,
-  "market_cap_rank": "unlimited",
+  "include_crypto": true,
+  "include_equity": false,
+  "include_premarket": false,
+  "include_commodity_fx": false,
+  "min_volume_usdt": 100.0,
+  "pulse_window": "15m",
   "blacklist": [],
   "enable_push": true,
   "cooldown_minutes": 5,

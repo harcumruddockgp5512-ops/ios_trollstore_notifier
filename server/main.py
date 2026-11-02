@@ -90,7 +90,12 @@ if os.path.exists(static_dir):
 def get_index():
     index_file = os.path.join(static_dir, "index.html")
     if os.path.exists(index_file):
-        return FileResponse(index_file)
+        headers = {
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        return FileResponse(index_file, headers=headers)
     return {"message": "TrollStore Anomaly Server Running"}
 
 # --- API 路由 ---
@@ -124,9 +129,12 @@ def get_screening_settings():
 
 class ScreeningUpdateRequest(BaseModel):
     monitor_all: bool = True
-    market_types: List[str] = ["spot", "usdt_perp"]
+    include_crypto: bool = True
+    include_equity: bool = False
+    include_premarket: bool = False
+    include_commodity_fx: bool = False
     min_volume_usdt: float = 1000000.0
-    market_cap_rank: str = "unlimited"
+    pulse_window: str = "5m"
     blacklist: List[str] = []
     enable_push: bool = True
     cooldown_minutes: int = 5
@@ -152,8 +160,8 @@ def get_status():
         "status": "online",
         "ws_clients": len(ws_manager.active_connections),
         "monitored_pairs": scanner.monitored_count,
-        "total_pairs": getattr(scanner, "total_raw_pairs", 770),
-        "active_rule": "strategy.daily_pump_50 (当日涨幅超过50%)",
+        "total_pairs": getattr(scanner, "total_pairs_count", 756),
+        "active_rule": "strategy.mean_reversion_fade_pump (急拉做空 / 价值回归引擎)",
         "server_time": time.strftime("%Y-%m-%d %H:%M:%S")
     }
 

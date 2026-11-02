@@ -1,5 +1,5 @@
 """
-Screening & Filter Configuration Manager (监控范围与过滤配置管理器)
+Screening & Filter Configuration Manager (监控范围与过滤配置管理器 - 纯 U 本位合约引擎)
 """
 
 import os
@@ -10,9 +10,12 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), "screening_settings.json")
 
 DEFAULT_SETTINGS: Dict[str, Any] = {
     "monitor_all": True,
-    "market_types": ["spot", "usdt_perp"],  # spot, usdt_perp, coin_perp
-    "min_volume_usdt": 1_000_000.0,         # 默认 24h 最低成交量 100万 USDT
-    "market_cap_rank": "unlimited",          # unlimited, vol_top50, vol_top100, vol_top200, gainers_top50, gainers_top100, losers_top50, losers_top100
+    "include_crypto": True,           # 币圈原生代币 (BTC, ETH, SOL 等)
+    "include_equity": False,          # 股票/公司代币 (TSLA, NVDA, AAPL 等)
+    "include_premarket": False,       # 盘前代币 (OPENAI, ANTHROPIC 等)
+    "include_commodity_fx": False,    # 大宗商品/外汇 (XAU, CL 等)
+    "min_volume_usdt": 1_000_000.0,   # 默认 24h 最低成交量 100万 USDT
+    "pulse_window": "5m",             # 脉冲检测周期: 5m (推荐), 15m, 3m
     "blacklist": [],
     "enable_push": True,
     "cooldown_minutes": 5,
@@ -44,66 +47,43 @@ class ScreeningConfigManager:
 
     def filter_tickers(self, all_tickers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        根据用户配置的核心 5 大维度对全市场币种进行真正的筛选过滤
+        根据用户配置对 U 本位合约标的进行过滤
         """
         cfg = self.settings
-        types = set(cfg.get("market_types", ["spot", "usdt_perp"]))
+        include_crypto = bool(cfg.get("include_crypto", True))
+        include_equity = bool(cfg.get("include_equity", False))
+        include_premarket = bool(cfg.get("include_premarket", False))
+        include_commodity_fx = bool(cfg.get("include_commodity_fx", False))
+        
         min_vol = float(cfg.get("min_volume_usdt", 0.0))
         blacklist = {b.upper().strip() for b in cfg.get("blacklist", [])}
-        rank_limit = cfg.get("market_cap_rank", "unlimited")
 
         filtered = []
         for t in all_tickers:
             sym = t.get("symbol", "").upper().strip()
-            is_perp = bool(t.get("is_perp", False))
             vol = float(t.get("volume_usdt", 0.0))
+            asset_type = t.get("asset_type", "COIN")
 
-            # 1. 黑名单排除 (无论是否开启全市场，黑名单必须排除)
+            # 1. 黑名单排除
             if sym in blacklist:
                 continue
 
-            # 2. 市场类型过滤 (现货 vs U本位合约 vs 币本位)
-            if is_perp and "usdt_perp" not in types:
+            # 2. 标的类型过滤 (币圈原生 vs 股票公司代币 vs 盘前 vs 大宗商品外汇)
+            if asset_type == "COIN" and not include_crypto:
                 continue
-            if not is_perp and "spot" not in types:
+            elif asset_type == "EQUITY" and not include_equity:
+                continue
+            elif asset_type == "PREMARKET" and not include_premarket:
+                continue
+            elif asset_type in ("COMMODITY", "FX") and not include_commodity_fx:
                 continue
 
-            # 3. 24h 最低成交量过滤 (过滤空气垃圾币)
+            # 3. 24h 最低成交量过滤 (过滤僵尸流动性)
             if vol < min_vol:
                 continue
 
             filtered.append(t)
 
-        # 4. 榜单与排名过滤 (支持成交量、涨幅榜前N名、跌幅榜前N名)
-        is_losers_rank = False
-
-        if rank_limit in ("top50", "vol_top50"):
-            filtered = sorted(filtered, key=lambda x: x.get("volume_usdt", 0), reverse=True)[:50]
-        elif rank_limit in ("top100", "vol_top100"):
-            filtered = sorted(filtered, key=lambda x: x.get("volume_usdt", 0), reverse=True)[:100]
-        elif rank_limit in ("top200", "vol_top200"):
-            filtered = sorted(filtered, key=lambda x: x.get("volume_usdt", 0), reverse=True)[:200]
-        elif rank_limit == "gainers_top50":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0), reverse=True)[:50]
-        elif rank_limit == "gainers_top100":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0), reverse=True)[:100]
-        elif rank_limit == "gainers_top200":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0), reverse=True)[:200]
-        elif rank_limit == "losers_top50":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0))[:50]
-            is_losers_rank = True
-        elif rank_limit == "losers_top100":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0))[:100]
-            is_losers_rank = True
-        elif rank_limit == "losers_top200":
-            filtered = sorted(filtered, key=lambda x: x.get("change_24h", 0.0))[:200]
-            is_losers_rank = True
-
-        # 最终排序: 如果是跌幅榜，按跌幅由大到小展示(即从最大跌幅开始); 否则默认按涨幅从大到小排序
-        if is_losers_rank:
-            filtered.sort(key=lambda x: x.get("change_24h", 0.0))
-        else:
-            filtered.sort(key=lambda x: x.get("change_24h", 0.0), reverse=True)
         return filtered
 
 screening_config = ScreeningConfigManager()

@@ -17,38 +17,64 @@
       --perp-purple: #B57AFF;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
-    body {
-      background-color: #08090C;
+    html, body {
+      background-color: var(--bg-dark);
       color: var(--text-white);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
     .phone-container {
-      width: 420px;
-      height: 860px;
+      width: 100%;
+      height: 100%;
       background: var(--bg-dark);
-      border-radius: 36px;
-      border: 3px solid #2D3139;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 24px rgba(240, 185, 11, 0.12);
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
     }
-    /* 状态栏 */
+    /* 顶部状态栏: 移动端自适应，保留倒计时徽标 */
     .status-bar {
-      height: 38px;
-      padding: 0 20px;
+      height: 44px;
+      padding: 0 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-muted);
       background: var(--bg-dark);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--card-border);
+    }
+    /* 动态收缩雷达轮询点 (纯单一点，彻底去掉外圈和中间圈) */
+    .radar-poll-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+    }
+    .radar-shrink-core {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #F0B90B 40%, #D49B00 100%);
+      box-shadow: 0 0 6px rgba(240, 185, 11, 0.7);
+      transform: scale(1);
+      transform-origin: center center;
+      will-change: transform;
+    }
+    .radar-shrink-core.detecting {
+      background: radial-gradient(circle, #0ECB81 40%, #059669 100%);
+      box-shadow: 0 0 10px #0ECB81;
     }
     .breathing-dot {
       width: 7px;
@@ -66,13 +92,18 @@
     /* 主内容区: 彻底隐藏 Windows 默认的粗白滚动条，还原本色 iPhone 手机纯黑视口 */
     .viewport {
       flex: 1;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
       overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       position: relative;
       scrollbar-width: none; /* Firefox */
       -ms-overflow-style: none; /* Edge */
       -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
     }
     .viewport::-webkit-scrollbar {
       display: none; /* 隐藏粗白滚动条 */
@@ -95,7 +126,17 @@
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(240, 185, 11, 0.5);
     }
-    .page { display: none; padding: 12px; flex-direction: column; gap: 8px; }
+    .page {
+      display: none;
+      padding: 12px;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
     .page.active { display: flex; }
 
     /* 天轮筛选栏 (Chips) */
@@ -105,6 +146,11 @@
       overflow-x: auto;
       padding-bottom: 6px;
       margin-bottom: 2px;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      flex-shrink: 0;
+      box-sizing: border-box;
     }
     .chips-row::-webkit-scrollbar { display: none; }
     .chip {
@@ -128,6 +174,8 @@
 
     /* 实时行情行卡片 */
     .ticker-card {
+      width: 100%;
+      max-width: 100%;
       background: var(--card-dark);
       border: 1px solid var(--card-border);
       border-radius: 8px;
@@ -135,7 +183,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: transform 0.15s, border-color 0.15s;
+      transition: transform 0.1s, border-color 0.15s, background-color 0.1s;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ticker-card:active {
+      transform: scale(0.97);
+      background-color: #222831;
+      border-color: var(--alert-gold);
     }
     .ticker-card:hover {
       border-color: rgba(240, 185, 11, 0.4);
@@ -143,6 +199,32 @@
     .ticker-card.pump-highlight {
       border-color: rgba(240, 185, 11, 0.6);
       background: linear-gradient(90deg, #1A1E24 0%, var(--card-dark) 100%);
+    }
+
+    /* 点击标的复制成功的浮动提示 (Toast) - 置于底部导航栏上方 */
+    .copy-toast {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 24px) + 76px);
+      left: 50%;
+      transform: translateX(-50%) translateY(12px) scale(0.92);
+      background: rgba(18, 22, 28, 0.96);
+      border: 1px solid rgba(240, 185, 11, 0.7);
+      color: var(--alert-gold);
+      font-size: 12.5px;
+      font-weight: bold;
+      padding: 7px 16px;
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 9999;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
     }
     .rank-num {
       width: 22px;
@@ -154,11 +236,23 @@
     .rank-num.top1 { color: #FFD700; }
     .rank-num.top2 { color: #C0C0C0; }
     .rank-num.top3 { color: #CD7F32; }
-    .coin-info { display: flex; flex-direction: column; gap: 2px; flex: 1; margin-left: 4px; }
+    .coin-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; margin-left: 4px; }
     .coin-symbol { font-size: 14px; font-weight: bold; color: #FFF; display: flex; align-items: center; gap: 6px; }
     .badge-spot { background: #1E2833; color: #5CA4FF; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: bold; }
-    .coin-sub { font-size: 11px; color: var(--text-muted); }
-    .price-col { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    .badge-crypto { background: rgba(181, 122, 255, 0.2); color: var(--perp-purple); font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; border: 1px solid rgba(181, 122, 255, 0.4); }
+    .badge-equity { background: rgba(240, 185, 11, 0.2); color: var(--alert-gold); font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; border: 1px solid rgba(240, 185, 11, 0.4); }
+    .badge-premarket { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+    .badge-commodity { background: rgba(14, 203, 129, 0.2); color: var(--up-green); font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+    .coin-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .price-col {
+      flex-shrink: 0;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      margin-left: 6px;
+    }
     .price-val { font-family: monospace; font-size: 14px; font-weight: 600; color: #FFF; }
     .pct-badge {
       padding: 3px 8px;
@@ -166,11 +260,13 @@
       font-size: 12px;
       font-weight: bold;
       font-family: monospace;
-      min-width: 64px;
+      min-width: 68px;
       text-align: center;
+      white-space: nowrap;
     }
     .pct-badge.up { background: rgba(14, 203, 129, 0.15); color: var(--up-green); }
     .pct-badge.down { background: rgba(246, 70, 93, 0.15); color: var(--down-red); }
+    .pct-badge.warn { background: rgba(240, 185, 11, 0.2); color: var(--alert-gold); }
 
     /* 预警历史卡片 */
     .alert-card {
@@ -184,35 +280,58 @@
       gap: 5px;
     }
 
-    /* 底部导航 */
+    /* 底部导航: 4 个实体方块按钮 */
     .tab-bar {
-      height: 60px;
-      background: var(--card-dark);
+      min-height: 68px;
+      padding: 8px 10px max(env(safe-area-inset-bottom, 24px), 24px) 10px;
+      background: #0B0E11;
       border-top: 1px solid var(--card-border);
       display: flex;
-      justify-content: space-around;
+      gap: 8px;
       align-items: center;
+      flex-shrink: 0;
     }
     .tab-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 3px;
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-muted);
       cursor: pointer;
       position: relative;
+      flex: 1;
+      height: 48px;
+      background: #181C21;
+      border: 1px solid #282E37;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.15s ease;
+      user-select: none;
     }
-    .tab-btn.active { color: var(--alert-gold); font-weight: bold; }
+    .tab-btn:active {
+      transform: scale(0.96);
+    }
+    .tab-btn.active {
+      background: rgba(240, 185, 11, 0.16);
+      border: 1px solid var(--alert-gold);
+      color: var(--alert-gold);
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(240, 185, 11, 0.25);
+    }
     .tab-btn .badge-dot {
       position: absolute;
-      top: -2px;
-      right: 2px;
+      top: -4px;
+      right: -4px;
       background: var(--down-red);
       color: white;
-      font-size: 9px;
-      border-radius: 8px;
-      padding: 1px 4px;
+      font-size: 10px;
+      font-weight: bold;
+      border-radius: 10px;
+      padding: 1px 5px;
+      border: 1px solid #0B0E11;
+      box-shadow: 0 0 4px rgba(246, 70, 93, 0.6);
     }
 
     /* 代码查看器 */
@@ -249,38 +368,62 @@
 </head>
 <body>
 
+  <!-- 点击标的复制成功的微提示 Toast -->
+  <div id="copy-toast" class="copy-toast">已复制</div>
+
   <div class="phone-container">
-    <!-- 顶部状态栏 -->
+    <!-- 顶部状态栏 (Status Bar) -->
     <div class="status-bar">
-      <span>14:28 5G</span>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <span id="countdown-badge" style="background: rgba(240, 185, 11, 0.15); color: var(--alert-gold); padding: 3px 9px; border-radius: 12px; font-size: 11px; font-family: monospace; font-weight: bold; border: 1px solid rgba(240, 185, 11, 0.4); cursor: pointer;" onclick="manualRefresh()" title="点击立即检测">⏱ 10s 后检测</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: bold; color: var(--text-white); font-size: 14px;">异动雷达 Terminal</span>
+        <span style="font-size: 10px; color: #0ECB81; background: rgba(14,203,129,0.15); padding: 1px 6px; border-radius: 4px; font-weight: bold;">v1.1</span>
+        <!-- 动态收缩点放在版本号后面 (10秒逐渐缩小，缩到最小即刻检测，如此循环) -->
+        <div id="radar-poll-widget" onclick="manualRefresh()" title="点击立即检测" class="radar-poll-box">
+          <div id="radar-shrink-core" class="radar-shrink-core"></div>
+        </div>
+        <!-- 移到顶部状态栏的监控总数统计 -->
+        <span style="font-size: 11px; color: var(--alert-gold); font-family: monospace; font-weight: bold;" id="count-tag">已监控 396 合约</span>
       </div>
+      <div><!-- 右上角彻底留空，不与原生热点图标重叠 --></div>
     </div>
 
     <!-- 主体视口 -->
     <div class="viewport">
       <!-- 页面 1: 实时雷达行情榜 -->
       <div id="page-radar" class="page active">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <div>
-            <h2 style="font-size: 16px; font-weight: bold; color: var(--text-white);">实时行情雷达 (Rankings)</h2>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 1px;">按当天 24h 涨跌幅实时排序</div>
+        <div style="margin-bottom: 6px;">
+          <h2 style="font-size: 16px; font-weight: bold; color: var(--text-white);">急拉做空雷达 (Fade the Pump)</h2>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 1px;">脉冲急拉 · 均值回归做空 · 纯 U本位合约</div>
+        </div>
+
+        <!-- 第一级设置: 周期 (5分钟 / 15分钟 / 30分钟 / 1小时 / 4小时) -->
+        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; width: 100%; min-width: 0;">
+          <span style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">周期:</span>
+          <div class="chips-row" style="margin: 0; padding-bottom: 0; flex: 1; min-width: 0;" id="period-chips">
+            <button type="button" class="chip" id="period-btn-5m" onclick="selectPeriod('5m')">5分钟</button>
+            <button type="button" class="chip active" id="period-btn-15m" onclick="selectPeriod('15m')">15分钟</button>
+            <button type="button" class="chip" id="period-btn-30m" onclick="selectPeriod('30m')">30分钟</button>
+            <button type="button" class="chip" id="period-btn-1h" onclick="selectPeriod('1h')">1小时</button>
+            <button type="button" class="chip" id="period-btn-4h" onclick="selectPeriod('4h')">4小时</button>
           </div>
-          <span style="font-size: 11px; color: var(--alert-gold); font-family: monospace;" id="count-tag">已加载 500+ 币</span>
         </div>
 
-        <!-- 涨幅天轮筛选 -->
-        <div class="chips-row" id="radar-threshold-chips">
-          <div class="chip active" onclick="setThresholdFilter(this, -999)">全部币种</div>
-          <div class="chip" onclick="setThresholdFilter(this, 10)">🔥 涨幅 &gt; 10%</div>
-          <div class="chip" onclick="setThresholdFilter(this, 20)">🚀 涨幅 &gt; 20%</div>
-          <div class="chip" onclick="setThresholdFilter(this, 30)">⚡ 涨幅 &gt; 30%</div>
-          <div class="chip" onclick="setThresholdFilter(this, 50)">💥 涨幅 &gt; 50%</div>
-          <div class="chip" onclick="setThresholdFilter(this, 100)">🌟 涨幅 &gt; 100%</div>
+        <!-- 第二级设置: 各个指标设计 (简短文字按钮) -->
+        <div class="chips-row" id="radar-threshold-chips" style="margin-bottom: 6px; width: 100%; min-width: 0;">
+          <div class="chip active" onclick="setSpikeFilter(this, 'all')">全部</div>
+          <div class="chip" onclick="setSpikeFilter(this, 'spike')">急拉 3%</div>
+          <div class="chip" onclick="setSpikeFilter(this, 'spike_surge')">暴冲 6%</div>
+          <div class="chip" onclick="setSpikeFilter(this, 'neg_funding')">负费率</div>
+          <div class="chip" onclick="setSpikeFilter(this, 'high_premium')">高溢价</div>
+          <div class="chip" onclick="setSpikeFilter(this, 'gainers_24h')">24h 涨幅</div>
         </div>
 
-        <!-- 实时行情榜单列表 -->
+        <!-- 详细逻辑介绍文字 (点开简短按钮后置顶展示) -->
+        <div id="filter-intro-card" style="background: rgba(240, 185, 11, 0.08); border-left: 3px solid var(--alert-gold); border-radius: 4px; padding: 7px 10px; margin-bottom: 8px; font-size: 11px; line-height: 1.5; color: #D4D4D4;">
+          <!-- 动态注入介绍文字 -->
+        </div>
+
+        <!-- 下面是排序列表 (按所选维度从大到小严格排序) -->
         <div id="ticker-list" style="display: flex; flex-direction: column; gap: 6px;">
           <div style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px;">正在从币安官方实时同步行情...</div>
         </div>
@@ -326,21 +469,22 @@
           </div>
         </div>
 
-        <!-- 2. 默认监控与范围控制 -->
+        <!-- 2. 标的类型与范围控制 (纯 U 本位合约) -->
         <div style="background: var(--card-dark); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); margin-top: 4px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 13px; font-weight: bold; color: var(--text-white);">监控全市场币种（默认开启）</div>
-              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">开启后监控所有满足条件的市场，关闭则使用下方自选范围</div>
+              <div style="font-size: 13px; font-weight: bold; color: var(--text-white);">监控全市场 U本位合约（默认开启）</div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">纯 USDT 永续合约引擎，已自动剔除所有现货与季度交割合约</div>
             </div>
             <input type="checkbox" id="cfg-monitor-all" checked style="transform: scale(1.2); accent-color: var(--alert-gold);" onchange="onToggleMonitorAll(this.checked)">
           </div>
           <div style="height: 1px; background: var(--card-border); margin: 10px 0;"></div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">市场类型多选：</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">U 本位合约标的分类开关：</div>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button type="button" class="chip active" id="chip-type-spot" onclick="toggleMarketType('spot')">[✓] USDT 现货交易对</button>
-            <button type="button" class="chip active" id="chip-type-perp" onclick="toggleMarketType('usdt_perp')">[✓] U本位永续合约</button>
-            <button type="button" class="chip" id="chip-type-coin" onclick="toggleMarketType('coin_perp')">[ ] 币本位合约</button>
+            <button type="button" class="chip active" id="chip-type-crypto" onclick="toggleAssetType('crypto')">[✓] 币圈原生代币 (BTC/ETH/SOL等)</button>
+            <button type="button" class="chip" id="chip-type-equity" onclick="toggleAssetType('equity')">[ ] 公司/股票代币 (TSLA/NVDA等)</button>
+            <button type="button" class="chip" id="chip-type-premarket" onclick="toggleAssetType('premarket')">[ ] 盘前代币 (OPENAI等)</button>
+            <button type="button" class="chip" id="chip-type-commodity" onclick="toggleAssetType('commodity')">[ ] 大宗/外汇 (XAU黄金等)</button>
           </div>
         </div>
 
@@ -358,34 +502,6 @@
             <button type="button" class="chip" onclick="setVol(1000000)" style="font-size:10px;">&gt; 1,000,000</button>
             <button type="button" class="chip" onclick="setVol(5000000)" style="font-size:10px;">&gt; 5,000,000</button>
             <button type="button" class="chip" onclick="setVol(10000000)" style="font-size:10px;">&gt; 10,000,000</button>
-          </div>
-
-          <div style="height: 1px; background: var(--card-border); margin: 10px 0;"></div>
-
-          <!-- 榜单与排名过滤 (成交量 / 涨幅 / 跌幅) -->
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size: 12px; font-weight: bold; color: var(--text-white);">榜单与排名筛选 (Rank Filter)</div>
-              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">支持按成交量、涨幅前100或跌幅前100精确监控</div>
-            </div>
-            <select id="cfg-rank-limit" style="background:#1A1E24; border:1px solid var(--alert-gold); color:var(--alert-gold); padding:5px 8px; border-radius:6px; font-size:11px; font-weight:bold; max-width:170px;">
-              <option value="unlimited">不限制</option>
-              <optgroup label="按 24h 成交额排名">
-                <option value="vol_top50">成交量前 50 名</option>
-                <option value="vol_top100">成交量前 100 名</option>
-                <option value="vol_top200">成交量前 200 名</option>
-              </optgroup>
-              <optgroup label="按 24h 涨幅榜排名">
-                <option value="gainers_top50">涨幅前 50 名</option>
-                <option value="gainers_top100">涨幅前 100 名</option>
-                <option value="gainers_top200">涨幅前 200 名</option>
-              </optgroup>
-              <optgroup label="按 24h 跌幅榜排名">
-                <option value="losers_top50">跌幅前 50 名</option>
-                <option value="losers_top100">跌幅前 100 名</option>
-                <option value="losers_top200">跌幅前 200 名</option>
-              </optgroup>
-            </select>
           </div>
         </div>
 
@@ -456,47 +572,72 @@
     const backendHost = isFile ? "127.0.0.1:8080" : loc.host;
     const apiBase = isFile ? "http://127.0.0.1:8080" : "";
 
-    // 10 秒倒计时检测控制
-    let countdown = 10;
-    let timerInterval = null;
+    // 动态收缩雷达轮询控制 (10秒逐渐缩小，缩到最小即刻检测，如此循环)
+    const SHRINK_DURATION = 10.0;
+    let shrinkStartTime = Date.now();
+    let animFrameId = null;
+    let isDetecting = false;
 
-    function startCountdown() {
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        countdown--;
-        const badge = document.getElementById("countdown-badge");
-        if (countdown > 0) {
-          badge.innerText = `⏱ ${countdown}s 后检测`;
-        } else {
-          badge.innerText = `🔄 检测中...`;
-          doDetection();
-        }
-      }, 1000);
+    function runShrinkAnimation() {
+      if (isDetecting) return;
+      const elapsed = (Date.now() - shrinkStartTime) / 1000;
+      const remaining = Math.max(0, SHRINK_DURATION - elapsed);
+      const ratio = remaining / SHRINK_DURATION; // 1.0 (最大) -> 0.0 (最小)
+      const scale = 0.12 + 0.88 * ratio;
+
+      const core = document.getElementById("radar-shrink-core");
+      if (core) {
+        core.style.transform = `scale(${scale.toFixed(3)})`;
+      }
+
+      if (remaining <= 0.05) {
+        // 缩到最小点，触发检测
+        triggerDetectionCycle();
+      } else {
+        animFrameId = requestAnimationFrame(runShrinkAnimation);
+      }
     }
 
-    async function doDetection() {
-      await Promise.all([fetchRankings(), fetchAlerts()]);
-      countdown = 10;
-      const badge = document.getElementById("countdown-badge");
-      if (badge) badge.innerText = `⏱ 10s 后检测`;
+    async function triggerDetectionCycle() {
+      if (isDetecting) return;
+      isDetecting = true;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+
+      const core = document.getElementById("radar-shrink-core");
+      if (core) {
+        core.classList.add("detecting");
+        core.style.transform = "scale(0.12)";
+      }
+
+      try {
+        await Promise.all([fetchRankings(), fetchAlerts()]);
+      } catch(e) {
+        console.error("Detection error:", e);
+      } finally {
+        setTimeout(() => {
+          if (core) {
+            core.classList.remove("detecting");
+          }
+          isDetecting = false;
+          shrinkStartTime = Date.now();
+          animFrameId = requestAnimationFrame(runShrinkAnimation);
+        }, 350);
+      }
     }
 
     function manualRefresh() {
-      countdown = 10;
-      const badge = document.getElementById("countdown-badge");
-      if (badge) badge.innerText = `🔄 检测中...`;
-      doDetection();
+      triggerDetectionCycle();
     }
 
     // 核心：从后台加载排序后的真实币安行情
     async function fetchRankings() {
       try {
-        const res = await fetch(apiBase + "/api/market/rankings");
+        const res = await fetch(apiBase + "/api/market/rankings?t=" + Date.now(), { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           allRankings = data.rankings || [];
           const tag = document.getElementById("count-tag");
-          if (tag) tag.innerText = `已监控 ${data.total_monitored} 币`;
+          if (tag) tag.innerText = `已监控 ${data.total_monitored} 合约`;
           renderRankings();
         }
       } catch(e) {
@@ -506,7 +647,7 @@
 
     async function fetchAlerts() {
       try {
-        const res = await fetch(apiBase + "/api/alerts");
+        const res = await fetch(apiBase + "/api/alerts?t=" + Date.now(), { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           alertsData = data.alerts || [];
@@ -516,56 +657,240 @@
       } catch(e) {}
     }
 
-    function setThresholdFilter(el, threshold) {
+    let currentFilterMode = 'all';
+    let currentPeriod = '15m'; // '5m' | '15m' | '30m' | '1h' | '4h'
+
+    function selectPeriod(period) {
+      currentPeriod = period;
+      ['5m', '15m', '30m', '1h', '4h'].forEach(p => {
+        const btn = document.getElementById("period-btn-" + p);
+        if (btn) {
+          if (p === period) btn.classList.add("active");
+          else btn.classList.remove("active");
+        }
+      });
+      renderRankings();
+    }
+
+    function setSpikeFilter(el, mode) {
       document.querySelectorAll("#radar-threshold-chips .chip").forEach(c => c.classList.remove("active"));
       el.classList.add("active");
-      currentThreshold = threshold;
+      currentFilterMode = mode;
       renderRankings();
+    }
+
+    function updateIntroCard(periodName, spikeKey, matchedCount, totalCount) {
+      const card = document.getElementById("filter-intro-card");
+      if (!card) return;
+
+      const isAll = matchedCount === totalCount;
+      const countBadge = isAll
+        ? `<span style="font-size:10px; color:var(--alert-gold); background:rgba(240,185,11,0.15); padding:1px 6px; border-radius:3px;">全量 ${totalCount} 合约</span>`
+        : `<span style="font-size:10px; color:var(--alert-gold); background:rgba(240,185,11,0.15); padding:1px 6px; border-radius:3px;">已筛选 ${matchedCount} / ${totalCount} 合约</span>`;
+
+      const intros = {
+        'all': {
+          title: `全部合约 · 按 ${periodName} 脉冲从大到小排序`,
+          desc: `【计算与筛选逻辑】以 ${periodName} 前的价格为基准点，计算最新价在近 ${periodName} 内的相对脉冲涨幅。全量展示受监控的 U 本位永续合约，并严格按 ${periodName} 脉冲涨幅从高到低倒序排列。`
+        },
+        'spike': {
+          title: `急拉 3% · 筛选近 ${periodName} 涨幅 ≥ 3% 标的`,
+          desc: `【计算与筛选逻辑】计算公式: (最新价 - ${periodName}前价) / ${periodName}前价 × 100%。筛选出在最近 ${periodName} 内脉冲拉升 ≥ 3.0% 的短线快速拉升合约，并按脉冲涨幅从大到小降序排列。`
+        },
+        'spike_surge': {
+          title: `暴冲 6% · 筛选近 ${periodName} 暴力冲高 ≥ 6% 标的`,
+          desc: `【计算与筛选逻辑】聚焦 ${periodName} 窗口内的高能极速暴冲。仅筛选涨幅 ≥ 6.0% 的极端脉冲标的（轧空见顶、主力拉高出货或散户疯狂追涨池），并按暴冲幅度从大到小降序排列。`
+        },
+        'neg_funding': {
+          title: `负费率 · 筛选资金费率 < 0 的逼空高危标的`,
+          desc: `【计算与筛选逻辑】实时获取币安资金费率（Funding Rate）。负费率意味着空头极度拥挤、持续向多头支付贴水。筛选资金费率 < 0 的标的，并按负费率极端程度（绝对值）从大到小降序排列。`
+        },
+        'high_premium': {
+          title: `高溢价 · 筛选溢价率 ≥ +0.3% 的多头过热标的`,
+          desc: `【计算与筛选逻辑】实时比对: (合约标记价 - 现货指数价) / 现货指数价 × 100%。筛选正向大幅溢价 ≥ +0.3% 的标的，揭示情绪非理性追多做多，并按溢价率从大到小降序排列。`
+        },
+        'gainers_24h': {
+          title: `24h 涨幅榜 · 全量合约从大到小排序`,
+          desc: `【计算与筛选逻辑】获取币安官方 24 小时日线价格涨跌幅。全量展示所有受监控的 U 本位合约，严格按 24h 涨跌幅从大到小降序排列（领涨币种置顶，可完整向下浏览全部合约）。`
+        }
+      };
+
+      const cur = intros[currentFilterMode] || intros['all'];
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+          <span style="font-weight:bold; color:var(--alert-gold);">${cur.title}</span>
+          ${countBadge}
+        </div>
+        <div style="color:#C5CAD2; font-size:10.5px; line-height:1.45;">${cur.desc}</div>
+      `;
+    }
+
+    let toastTimer = null;
+    function showCopyToast(symbol) {
+      const toast = document.getElementById("copy-toast");
+      if (!toast) return;
+      toast.innerText = `已复制 ${symbol}`;
+      toast.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1200);
+    }
+
+    function copySymbol(symbol, evt) {
+      if (evt) evt.stopPropagation();
+      const text = String(symbol || "").trim();
+      if (!text) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showCopyToast(text);
+        }).catch(() => {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      try {
+        const input = document.createElement("input");
+        input.setAttribute("value", text);
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        input.style.left = "-9999px";
+        document.body.appendChild(input);
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        document.body.removeChild(input);
+        showCopyToast(text);
+      } catch(e) {
+        console.error("Copy failed:", e);
+      }
     }
 
     function renderRankings() {
       const list = document.getElementById("ticker-list");
       list.innerHTML = "";
 
-      let filtered = allRankings;
-      if (currentThreshold > -900) {
-        filtered = allRankings.filter(item => item.change_24h >= currentThreshold);
+      const periodNames = {
+        '5m': '5分钟',
+        '15m': '15分钟',
+        '30m': '30分钟',
+        '1h': '1小时',
+        '4h': '4小时'
+      };
+      const periodName = periodNames[currentPeriod] || '15分钟';
+      const spikeKey = 'spike_' + currentPeriod;
+
+      let filtered = allRankings.slice();
+
+      // 筛选
+      if (currentFilterMode === 'spike') {
+        filtered = filtered.filter(item => (item[spikeKey] || 0) >= 3.0);
+      } else if (currentFilterMode === 'spike_surge') {
+        filtered = filtered.filter(item => (item[spikeKey] || 0) >= 6.0);
+      } else if (currentFilterMode === 'neg_funding') {
+        filtered = filtered.filter(item => (item.funding_rate || 0) < 0);
+      } else if (currentFilterMode === 'high_premium') {
+        filtered = filtered.filter(item => (item.premium_pct || 0) >= 0.3);
+      } else if (currentFilterMode === 'gainers_24h') {
+        // 全量 521 个合约完整展示，按 24h 涨幅从大到小降序排列
+      }
+
+      // 更新介绍文字与筛选匹配数量统计
+      updateIntroCard(periodName, spikeKey, filtered.length, allRankings.length);
+
+      // 排序: 严格从大到小排序
+      if (currentFilterMode === 'neg_funding') {
+        // 负费率从大到小 (负得最多的排最前)
+        filtered.sort((a, b) => (a.funding_rate || 0) - (b.funding_rate || 0));
+      } else if (currentFilterMode === 'high_premium') {
+        filtered.sort((a, b) => (b.premium_pct || 0) - (a.premium_pct || 0));
+      } else if (currentFilterMode === 'gainers_24h') {
+        filtered.sort((a, b) => (b.change_24h || 0) - (a.change_24h || 0));
+      } else {
+        // all, spike, spike_surge: 按当前所选周期的脉冲涨幅从大到小排序
+        filtered.sort((a, b) => (b[spikeKey] || 0) - (a[spikeKey] || 0));
       }
 
       if (filtered.length === 0) {
         list.innerHTML = `
           <div style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px;">
-            当前全市场暂无涨幅超过 ${currentThreshold}% 的币种
+            当前暂无符合该特征的合约标的
           </div>
         `;
         return;
       }
 
       filtered.forEach((item, index) => {
-        const isUp = item.change_24h >= 0;
-        const isPump50 = item.change_24h >= 50.0;
+        const is24hUp = item.change_24h >= 0;
+        const spike = item[spikeKey] !== undefined ? item[spikeKey] : (item.spike_pct || 0);
+        const isSpikeAlert = spike >= 3.0;
         const card = document.createElement("div");
-        card.className = "ticker-card" + (isPump50 ? " pump-highlight" : "");
+        card.className = "ticker-card" + (isSpikeAlert ? " pump-highlight" : "");
+        card.title = "点击复制 " + item.symbol;
+        card.onclick = (e) => copySymbol(item.symbol, e);
 
         let rankClass = "rank-num";
         if (index === 0) rankClass += " top1";
         else if (index === 1) rankClass += " top2";
         else if (index === 2) rankClass += " top3";
 
+        let assetBadge = '<span class="badge-crypto">COIN</span>';
+        if (item.asset_type === 'EQUITY') {
+          assetBadge = '<span class="badge-equity">美股/股票</span>';
+        } else if (item.asset_type === 'PREMARKET') {
+          assetBadge = '<span class="badge-premarket">盘前</span>';
+        } else if (item.asset_type === 'COMMODITY') {
+          assetBadge = '<span class="badge-commodity">大宗/外汇</span>';
+        }
+
+        // 核心：用户选什么指标，最右边最显眼位置就展示什么指标！
+        let rightBadgeText = "";
+        let rightBadgeClass = "pct-badge";
+        let subInfoHtml = "";
+
+        if (currentFilterMode === 'neg_funding') {
+          // 选中“负费率”：最右侧显眼展示资金费率
+          const frVal = item.funding_rate !== undefined && item.funding_rate !== null ? (item.funding_rate * 100).toFixed(3) : "0.000";
+          rightBadgeText = `${frVal}%`;
+          rightBadgeClass += item.funding_rate < 0 ? " down" : " up";
+          subInfoHtml = `${currentPeriod}: <span style="color:${spike >= 0 ? 'var(--up-green)' : 'var(--down-red)'}">${spike >= 0 ? '+' : ''}${spike}%</span> | 24h: <span style="color:${is24hUp ? 'var(--up-green)' : 'var(--down-red)'}">${is24hUp ? '+' : ''}${item.change_24h}%</span>`;
+        } else if (currentFilterMode === 'high_premium') {
+          // 选中“高溢价”：最右侧显眼展示溢价率
+          const premVal = item.premium_pct !== undefined ? item.premium_pct.toFixed(2) : "0.00";
+          rightBadgeText = `溢价 ${premVal >= 0 ? '+' : ''}${premVal}%`;
+          rightBadgeClass += premVal >= 0 ? " warn" : " down";
+          subInfoHtml = `${currentPeriod}: <span style="color:${spike >= 0 ? 'var(--up-green)' : 'var(--down-red)'}">${spike >= 0 ? '+' : ''}${spike}%</span> | 24h: <span style="color:${is24hUp ? 'var(--up-green)' : 'var(--down-red)'}">${is24hUp ? '+' : ''}${item.change_24h}%</span>`;
+        } else if (currentFilterMode === 'gainers_24h') {
+          // 选中“24h 涨幅”：最右侧显眼展示单日涨跌幅
+          rightBadgeText = `24h ${is24hUp ? '+' : ''}${item.change_24h}%`;
+          rightBadgeClass += is24hUp ? " up" : " down";
+          subInfoHtml = `${currentPeriod}: <span style="color:${spike >= 0 ? 'var(--up-green)' : 'var(--down-red)'}">${spike >= 0 ? '+' : ''}${spike}%</span> | 24h量: ${item.volume_str}`;
+        } else {
+          // 选中“全部” / “急拉 3%” / “暴冲 6%”：最右侧显眼展示所选周期的脉冲涨幅！
+          rightBadgeText = `${currentPeriod} ${spike >= 0 ? '+' : ''}${spike}%`;
+          rightBadgeClass += spike >= 0 ? " up" : " down";
+          subInfoHtml = `24h: <span style="color:${is24hUp ? 'var(--up-green)' : 'var(--down-red)'}">${is24hUp ? '+' : ''}${item.change_24h}%</span> | 24h量: ${item.volume_str}`;
+        }
+
         card.innerHTML = `
-          <div style="display:flex; align-items:center;">
+          <div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:8px;">
             <span class="${rankClass}">#${index + 1}</span>
             <div class="coin-info">
               <div class="coin-symbol">
                 <span>${item.symbol}</span>
-                <span class="${item.is_perp ? 'badge-perp' : 'badge-spot'}">${item.is_perp ? 'PERP' : 'SPOT'}</span>
+                ${assetBadge}
               </div>
-              <div class="coin-sub">24h量: ${item.volume_str} | 高: $${item.high_24h}</div>
+              <div class="coin-sub">${subInfoHtml}</div>
             </div>
           </div>
           <div class="price-col">
             <span class="price-val">$${item.price_str}</span>
-            <span class="pct-badge ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${item.change_24h}%</span>
+            <span class="${rightBadgeClass}">${rightBadgeText}</span>
           </div>
         `;
         list.appendChild(card);
@@ -578,13 +903,25 @@
       alertsData.forEach(item => {
         const div = document.createElement("div");
         div.className = "alert-card";
+        div.style.cursor = "pointer";
+        div.title = "点击复制 " + item.symbol;
+        div.onclick = (e) => copySymbol(item.symbol, e);
+        const badgesHtml = (item.badges || []).map(b => `<span style="background:rgba(240,185,11,0.18); color:var(--alert-gold); padding:2px 7px; border-radius:4px; font-size:10px; font-weight:bold; margin-right:4px;">${b}</span>`).join("");
+        const scoreTag = item.score ? `<span style="background:${item.score >= 75 ? 'var(--down-red)' : 'var(--alert-gold)'}; color:#000; font-weight:bold; padding:2px 6px; border-radius:3px; font-size:10px; margin-left:6px;">做空评分: ${item.score}</span>` : "";
         div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-size:11px;">
-            <span style="color:var(--alert-gold); font-weight:bold;">${item.rule_name || item.rule_id}</span>
-            <span style="color:var(--text-muted);">${item.time_str}</span>
+          <div style="display:flex; justify-content:space-between; font-size:11px; align-items:center;">
+            <div>
+              <span style="color:var(--alert-gold); font-weight:bold;">${item.rule_name || item.rule_id}</span>
+              ${scoreTag}
+            </div>
+            <span style="color:var(--text-muted); font-family:monospace;">${item.time_str}</span>
           </div>
-          <div style="font-size:13px; font-weight:bold; color:#FFF;">${item.symbol} | 现价: $${item.price} | 涨幅: +${item.change_24h}%</div>
-          <div style="font-size:11px; color:#A0A6B2;">${item.message}</div>
+          <div style="font-size:13px; font-weight:bold; color:#FFF; display:flex; align-items:center; gap:6px; margin:2px 0;">
+            <span>${item.symbol}</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">现价: $${item.price} | 24h: ${item.change_24h}%</span>
+          </div>
+          ${badgesHtml ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin:3px 0;">${badgesHtml}</div>` : ''}
+          <div style="font-size:11.5px; color:#A0A6B2; line-height:1.4;">${item.message}</div>
         `;
         list.appendChild(div);
       });
@@ -603,11 +940,15 @@
 
     function switchTab(tab) {
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById("page-" + tab).classList.add("active");
-      if (event && event.currentTarget) {
-        event.currentTarget.classList.add("active");
-      }
+      document.querySelectorAll(".tab-btn").forEach(b => {
+        if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + tab + "'")) {
+          b.classList.add("active");
+        } else {
+          b.classList.remove("active");
+        }
+      });
+      const targetPage = document.getElementById("page-" + tab);
+      if (targetPage) targetPage.classList.add("active");
 
       if (tab === "rules") {
         fetch(apiBase + "/api/rules/code").then(r => r.json()).then(d => {
@@ -636,48 +977,56 @@
       updateBadge();
     }
 
-    let selectedMarketTypes = new Set(["spot", "usdt_perp"]);
+    let assetFilters = {
+      crypto: true,
+      equity: false,
+      premarket: false,
+      commodity: false
+    };
 
-    function updateMarketChipsUI() {
-      const spotBtn = document.getElementById("chip-type-spot");
-      const perpBtn = document.getElementById("chip-type-perp");
-      const coinBtn = document.getElementById("chip-type-coin");
+    function updateAssetChipsUI() {
+      const cryptoBtn = document.getElementById("chip-type-crypto");
+      const equityBtn = document.getElementById("chip-type-equity");
+      const premarketBtn = document.getElementById("chip-type-premarket");
+      const commodityBtn = document.getElementById("chip-type-commodity");
 
-      if (spotBtn) {
-        const has = selectedMarketTypes.has("spot");
-        spotBtn.className = has ? "chip active" : "chip";
-        spotBtn.innerText = has ? "[✓] USDT 现货交易对" : "[ ] USDT 现货交易对";
+      if (cryptoBtn) {
+        cryptoBtn.className = assetFilters.crypto ? "chip active" : "chip";
+        cryptoBtn.innerText = assetFilters.crypto ? "[✓] 币圈原生代币 (BTC/ETH/SOL等)" : "[ ] 币圈原生代币 (BTC/ETH/SOL等)";
       }
-      if (perpBtn) {
-        const has = selectedMarketTypes.has("usdt_perp");
-        perpBtn.className = has ? "chip active" : "chip";
-        perpBtn.innerText = has ? "[✓] U本位永续合约" : "[ ] U本位永续合约";
+      if (equityBtn) {
+        equityBtn.className = assetFilters.equity ? "chip active" : "chip";
+        equityBtn.innerText = assetFilters.equity ? "[✓] 公司/股票代币 (TSLA/NVDA等)" : "[ ] 公司/股票代币 (TSLA/NVDA等)";
       }
-      if (coinBtn) {
-        const has = selectedMarketTypes.has("coin_perp");
-        coinBtn.className = has ? "chip active" : "chip";
-        coinBtn.innerText = has ? "[✓] 币本位合约" : "[ ] 币本位合约";
+      if (premarketBtn) {
+        premarketBtn.className = assetFilters.premarket ? "chip active" : "chip";
+        premarketBtn.innerText = assetFilters.premarket ? "[✓] 盘前代币 (OPENAI等)" : "[ ] 盘前代币 (OPENAI等)";
+      }
+      if (commodityBtn) {
+        commodityBtn.className = assetFilters.commodity ? "chip active" : "chip";
+        commodityBtn.innerText = assetFilters.commodity ? "[✓] 大宗/外汇 (XAU黄金等)" : "[ ] 大宗/外汇 (XAU黄金等)";
       }
     }
 
-    function toggleMarketType(type) {
-      if (selectedMarketTypes.has(type)) {
-        if (selectedMarketTypes.size <= 1) {
-          alert("至少需要保留一种监控市场类型！");
+    function toggleAssetType(type) {
+      if (assetFilters[type]) {
+        // 检查是否全关
+        const activeCount = Object.values(assetFilters).filter(Boolean).length;
+        if (activeCount <= 1) {
+          alert("至少需要保留一种监控资产类型！");
           return;
         }
-        selectedMarketTypes.delete(type);
+        assetFilters[type] = false;
       } else {
-        selectedMarketTypes.add(type);
+        assetFilters[type] = true;
       }
-      updateMarketChipsUI();
+      updateAssetChipsUI();
     }
 
     function onToggleMonitorAll(checked) {
       if (checked) {
-        selectedMarketTypes.add("spot");
-        selectedMarketTypes.add("usdt_perp");
-        updateMarketChipsUI();
+        assetFilters.crypto = true;
+        updateAssetChipsUI();
       }
     }
 
@@ -696,11 +1045,13 @@
           const s = data.settings || {};
           document.getElementById("cfg-monitor-all").checked = s.monitor_all !== false;
           
-          selectedMarketTypes = new Set(s.market_types || ["spot", "usdt_perp"]);
-          updateMarketChipsUI();
+          assetFilters.crypto = s.include_crypto !== false;
+          assetFilters.equity = !!s.include_equity;
+          assetFilters.premarket = !!s.include_premarket;
+          assetFilters.commodity = !!s.include_commodity_fx;
+          updateAssetChipsUI();
 
           document.getElementById("cfg-min-vol").value = s.min_volume_usdt !== undefined ? s.min_volume_usdt : 1000000;
-          document.getElementById("cfg-rank-limit").value = s.market_cap_rank || "unlimited";
 
           document.getElementById("cfg-enable-push").checked = s.enable_push !== false;
           const cd = s.cooldown_minutes || 5;
@@ -719,12 +1070,14 @@
       const toast = document.getElementById("save-toast");
       if (btn) btn.innerText = "⏳ 正在应用过滤...";
 
-      const types = Array.from(selectedMarketTypes);
       const payload = {
         monitor_all: document.getElementById("cfg-monitor-all").checked,
-        market_types: types,
+        include_crypto: assetFilters.crypto,
+        include_equity: assetFilters.equity,
+        include_premarket: assetFilters.premarket,
+        include_commodity_fx: assetFilters.commodity,
         min_volume_usdt: parseFloat(document.getElementById("cfg-min-vol").value) || 0,
-        market_cap_rank: document.getElementById("cfg-rank-limit").value,
+        pulse_window: "15m",
         blacklist: [],
         enable_push: document.getElementById("cfg-enable-push").checked,
         cooldown_minutes: parseInt(document.getElementById("cfg-cooldown").value) || 5,
@@ -743,7 +1096,7 @@
           document.getElementById("settings-monitored-num").innerText = d.monitored_count;
           document.getElementById("settings-total-num").innerText = d.total_count;
           if (toast) {
-            toast.innerText = `✅ 已更新监测范围：当前监控 ${d.monitored_count} / ${d.total_count} 个交易对`;
+            toast.innerText = `✅ 已更新监测范围：当前监控 ${d.monitored_count} / ${d.total_count} 个 U本位永续合约`;
             toast.style.display = "block";
             setTimeout(() => { toast.style.display = "none"; }, 3500);
           }
@@ -758,10 +1111,24 @@
       }
     }
 
-    // 页面初始化: 启动 10 秒倒计时检测轮询
+    // 页面初始化: 启动动态收缩雷达轮询与首次检测
     loadScreeningSettings();
-    startCountdown();
-    doDetection();
+    triggerDetectionCycle();
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTab = urlParams.get("tab");
+    if (urlTab) switchTab(urlTab);
+    const urlPeriod = urlParams.get("period");
+    if (urlPeriod && ['5m', '15m', '30m', '1h', '4h'].includes(urlPeriod)) selectPeriod(urlPeriod);
+    const urlFilter = urlParams.get("filter");
+    if (urlFilter) {
+      currentFilterMode = urlFilter;
+      document.querySelectorAll("#radar-threshold-chips .chip").forEach(c => {
+        if (c.getAttribute("onclick") && c.getAttribute("onclick").includes(`'${urlFilter}'`)) c.classList.add("active");
+        else c.classList.remove("active");
+      });
+      renderRankings();
+    }
+
   </script>
 </body>
 </html>
