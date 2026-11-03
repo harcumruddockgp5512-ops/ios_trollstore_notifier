@@ -13,6 +13,8 @@ except Exception:
 
 import time
 import asyncio
+import urllib.parse
+import httpx
 
 # 将当前目录加入 python 查找路径
 sys.path.insert(0, os.path.dirname(__file__))
@@ -62,13 +64,63 @@ class ConnectionManager:
 
 ws_manager = ConnectionManager()
 
+async def send_external_push(alert: Dict[str, Any]):
+    """向 iOS Bark (走苹果 APNs 官方通道，支持锁屏直接点亮屏幕) 或 Webhook 发送远程推送"""
+    cfg = screening_config.settings
+    if not cfg.get("enable_push", True):
+        return
+
+    sym = alert.get("symbol", "未知标的")
+    score = alert.get("score", 70)
+    title = f"🚨 异动做空: {sym} (评分:{score})"
+    msg = alert.get("message", f"{alert.get('rule_name', '急拉见顶')} 现价: ${alert.get('price')}")
+
+    # 1. iOS Bark 推送: 走苹果官方 APNs 信道，锁屏即刻点亮屏幕 + 震动 + 提示音
+    bark_key = (cfg.get("bark_key") or "").strip()
+    if bark_key:
+        try:
+            if bark_key.startswith("http://") or bark_key.startswith("https://"):
+                base_bark = bark_key.rstrip("/")
+            else:
+                base_bark = f"https://api.day.app/{bark_key}"
+
+            enc_title = urllib.parse.quote(title)
+            enc_msg = urllib.parse.quote(msg)
+            jump_url = urllib.parse.quote("http://47.92.99.47:15926/?tab=alerts")
+            # level=timeSensitive 触发 iOS 锁屏点亮唤醒屏幕；sound=minuet 清脆提醒音；isArchive=1 保存历史
+            bark_url = f"{base_bark}/{enc_title}/{enc_msg}?group=CryptoRadar&level=timeSensitive&sound=minuet&isArchive=1&url={jump_url}"
+
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                res = await client.get(bark_url)
+                if res.status_code == 200:
+                    print(f"[Bark推送成功] {sym} 已发送苹果 APNs 锁屏亮屏通知")
+                else:
+                    print(f"[Bark推送返回异常] HTTP {res.status_code}")
+        except Exception as e:
+            print(f"[Bark推送异常]: {e}")
+
+    # 2. 自定义 Webhook 推送
+    webhook_url = (cfg.get("webhook_url") or "").strip()
+    if webhook_url:
+        try:
+            payload = {
+                "msg_type": "text",
+                "content": {"text": f"{title}\n{msg}"},
+                "alert": alert
+            }
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                await client.post(webhook_url, json=payload)
+        except Exception as e:
+            print(f"[Webhook推送异常]: {e}")
+
 async def broadcast_anomaly(alert: Dict[str, Any]):
-    """广播新预警事件"""
+    """广播新预警事件并分发锁屏推送"""
     payload = {
         "type": "ANOMALY_ALERT",
         "data": alert
     }
     await ws_manager.broadcast(payload)
+    asyncio.create_task(send_external_push(alert))
 
 scanner = MarketScanner(on_anomaly_callback=broadcast_anomaly)
 
@@ -140,6 +192,8 @@ class ScreeningUpdateRequest(BaseModel):
     cooldown_minutes: int = 5
     enable_sound: bool = True
     enable_vibrate: bool = True
+    bark_key: str = ""
+    webhook_url: str = ""
 
 @app.post("/api/screening")
 async def update_screening_settings(req: ScreeningUpdateRequest):
@@ -153,6 +207,33 @@ async def update_screening_settings(req: ScreeningUpdateRequest):
         "monitored_count": scanner.monitored_count,
         "total_count": getattr(scanner, "total_pairs_count", 750)
     }
+
+class BarkTestRequest(BaseModel):
+    bark_key: str = ""
+
+@app.post("/api/push/test_bark")
+async def test_bark_push(req: BarkTestRequest = None):
+    bark_key = req.bark_key if req and req.bark_key else screening_config.settings.get("bark_key", "")
+    if not bark_key:
+        return {"status": "error", "message": "尚未配置 Bark Key"}
+    
+    # 构造测试做空异动对象
+    test_alert = {
+        "symbol": "HOTUSDT",
+        "score": 85,
+        "price": 0.0004116,
+        "rule_name": "脉冲急拉 / 均值回归信号",
+        "message": "[HOTUSDT] 异动 (评分:85)：15分钟急拉 +6.8%，高位爆量见顶衰竭，负费率 -1.56%，现价: $0.0004116"
+    }
+    # 临时覆盖 key 测试
+    old_key = screening_config.settings.get("bark_key")
+    screening_config.settings["bark_key"] = bark_key
+    try:
+        await send_external_push(test_alert)
+    finally:
+        if old_key is not None:
+            screening_config.settings["bark_key"] = old_key
+    return {"status": "ok", "message": "测试亮屏推送已发出，请查看 iPhone 锁屏"}
 
 @app.get("/api/status")
 def get_status():
@@ -210,19 +291,26 @@ class MockAlertRequest(BaseModel):
 @app.post("/api/alerts/mock")
 async def trigger_mock_alert(req: MockAlertRequest):
     """
-    【重点测试接口】手动模拟触发当日涨幅 > 50% 预警
+    【重点测试接口】手动模拟触发异动做空预警并全网 WebSocket 广播
     """
-    ticker = {
+    alert = {
+        "rule_id": "strategy.mean_reversion_fade_pump",
+        "rule_name": "脉冲急拉 / 均值回归信号",
         "symbol": req.symbol,
-        "priceChangePercent": req.priceChangePercent,
-        "lastPrice": req.lastPrice,
-        "quoteVolume": req.quoteVolume,
-        "is_perp": req.is_perp
+        "is_perp": req.is_perp,
+        "price": req.lastPrice,
+        "change_24h": req.priceChangePercent,
+        "volume_24h": req.quoteVolume,
+        "score": 75,
+        "spike_pct": 6.8,
+        "vol_ratio": 4.5,
+        "funding_rate": -0.0156,
+        "premium_pct": 0.42,
+        "oi_change_pct": -2.5,
+        "badges": ["15m急拉 +6.8%", "高位萎缩爆量", "负费率 -1.56%"],
+        "severity": "WARNING",
+        "message": f"[{req.symbol}] 异动 (评分:75)：15分钟急拉 +6.8%，高位迅速萎缩爆量，负费率 -1.56%，现价: ${req.lastPrice}"
     }
-    
-    alert = anomaly_rules.rule_daily_pump_50(ticker)
-    if not alert:
-        return {"status": "rejected", "reason": "Rule conditions not met (e.g. change < 50%)"}
 
     record = alert_manager.record_alert(alert)
     await broadcast_anomaly(record)

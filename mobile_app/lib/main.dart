@@ -57,9 +57,17 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      requestCriticalPermission: true,
     );
     await _notificationsPlugin.initialize(
       const InitializationSettings(iOS: darwinInit),
+    );
+    final iosPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+    await iosPlugin?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+      critical: true,
     );
   }
 
@@ -73,7 +81,7 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
       ),
     );
     await _notificationsPlugin.show(
-      DateTime.now().millisecond,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,
       body,
       details,
@@ -109,21 +117,33 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
       ..loadRequest(Uri.parse(targetUrl));
   }
 
+  Timer? _heartbeatTimer;
+
   void _startBackgroundWs() {
     _channel?.sink.close();
+    _heartbeatTimer?.cancel();
     final wsUrl = 'ws://$_serverHost/ws/radar';
     try {
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+
+      // 每 15 秒发送一次心跳 ping，维持长连接与运营商通道活跃
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+        try {
+          _channel?.sink.add('ping');
+        } catch (_) {}
+      });
+
       _channel!.stream.listen(
         (data) {
           try {
             final decoded = jsonDecode(data);
             if (decoded['type'] == 'ANOMALY_ALERT') {
-              final d = decoded['data'];
-              _showNotification(
-                '🚨 暴涨预警: ${d['symbol']} +${d['change_24h']}%',
-                '${d['rule_name']}\n现价: \$${d['price']}',
-              );
+              final d = decoded['data'] ?? {};
+              final sym = d['symbol'] ?? '未知标的';
+              final score = d['score'] != null ? ' (评分:${d['score']})' : '';
+              final title = '🚨 异动做空预警: $sym$score';
+              final msg = d['message'] ?? '${d['rule_name'] ?? '急拉回归信号'}\n现价: \$${d['price']}';
+              _showNotification(title, msg);
             }
           } catch (_) {}
         },
@@ -136,8 +156,9 @@ class _HotContainerScreenState extends State<HotContainerScreen> {
   }
 
   void _retryWs() {
+    _heartbeatTimer?.cancel();
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), _startBackgroundWs);
+    _reconnectTimer = Timer(const Duration(seconds: 4), _startBackgroundWs);
   }
 
   void _showHostDialog() {

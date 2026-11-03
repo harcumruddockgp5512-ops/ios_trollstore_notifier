@@ -364,12 +364,96 @@
       word-break: break-word; /* 保证符号和变量名平滑断行 */
       overflow-wrap: anywhere;
     }
+
+    /* 顶部浮动预警横幅与弹窗通知 */
+    .alert-banner-container {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 440px;
+      z-index: 999999;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .alert-banner-card {
+      pointer-events: auto;
+      background: rgba(22, 26, 30, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--alert-gold);
+      border-left: 4px solid var(--alert-gold);
+      border-radius: 10px;
+      padding: 11px 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 16px rgba(240, 185, 11, 0.3);
+      animation: alertSlideDown 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .alert-banner-card:active {
+      transform: scale(0.98);
+    }
+    .alert-banner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .alert-banner-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--alert-gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .alert-banner-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      padding: 0 4px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .alert-banner-close:hover {
+      color: #FFF;
+    }
+    .alert-banner-msg {
+      font-size: 12px;
+      color: #EAECEF;
+      line-height: 1.45;
+    }
+    .alert-banner-meta {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+    }
+    @keyframes alertSlideDown {
+      from { opacity: 0; transform: translateY(-24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes alertFadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-16px); }
+    }
   </style>
 </head>
 <body>
 
   <!-- 点击标的复制成功的微提示 Toast -->
   <div id="copy-toast" class="copy-toast">已复制</div>
+
+  <!-- 顶部预警弹窗浮动通知容器 -->
+  <div id="alert-banner-container" class="alert-banner-container"></div>
 
   <div class="phone-container">
     <!-- 顶部状态栏 (Status Bar) -->
@@ -382,7 +466,7 @@
           <div id="radar-shrink-core" class="radar-shrink-core"></div>
         </div>
         <!-- 移到顶部状态栏的监控总数统计 -->
-        <span style="font-size: 11px; color: var(--alert-gold); font-family: monospace; font-weight: bold;" id="count-tag">已监控 396 合约</span>
+        <span style="font-size: 11px; color: var(--alert-gold); font-family: monospace; font-weight: bold;" id="count-tag">已监控 521 合约</span>
       </div>
       <div><!-- 右上角彻底留空，不与原生热点图标重叠 --></div>
     </div>
@@ -433,9 +517,10 @@
       <div id="page-alerts" class="page">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <h2 style="font-size: 16px; font-weight: bold; color: var(--text-white);">预警记录 (Alerts)</h2>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" onclick="testAlertNotification()" style="background:rgba(240,185,11,0.18); border:1px solid var(--alert-gold); color:var(--alert-gold); font-size:11px; font-weight:bold; padding:2px 8px; border-radius:4px; cursor:pointer;">🔔 测试提醒</button>
             <button onclick="markAllRead()" style="background:none; border:none; color:var(--alert-gold); font-size:12px; cursor:pointer;">全部已读</button>
-            <button onclick="clearAlerts()" style="background:none; border:none; color:var(--text-muted); font-size:12px; margin-left:8px; cursor:pointer;">清空</button>
+            <button onclick="clearAlerts()" style="background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer;">清空</button>
           </div>
         </div>
         <div id="alerts-list" style="display: flex; flex-direction: column; gap: 8px;">
@@ -525,6 +610,32 @@
           <div style="display:flex; justify-content:space-between; margin-top:10px;">
             <label style="font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="cfg-sound" checked style="accent-color:var(--alert-gold);"> 声音提醒</label>
             <label style="font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="cfg-vibrate" checked style="accent-color:var(--alert-gold);"> 强震动提醒</label>
+          </div>
+
+          <!-- iOS 锁屏点亮唤醒推送 (苹果官方 APNs 信道) -->
+          <div style="margin-top:12px; padding:10px; background:#12161A; border:1px solid #23272E; border-radius:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11px; font-weight:bold; color:var(--alert-gold);">📱 iPhone 锁屏点亮推送 (Bark / APNs 极速唤醒)</span>
+              <a href="https://apps.apple.com/cn/app/bark-customed-notifications/id1403753865" target="_blank" style="font-size:10px; color:#5CA4FF; text-decoration:none;">获取 Bark ›</a>
+            </div>
+            <div style="font-size:10px; color:var(--text-muted); margin-top:3px; line-height:1.4;">
+              即使手机锁屏黑屏、深度休眠，也能瞬间点亮屏幕并响铃！在 iPhone 上打开免费开源的 Bark App，复制专属 Key 粘贴在此：
+            </div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <input type="text" id="cfg-bark-key" placeholder="粘贴 Bark Key 或 https://api.day.app/..." style="flex:1; background:#1A1E24; border:1px solid var(--card-border); color:#FFF; padding:6px 8px; border-radius:6px; font-size:11px; font-family:monospace;">
+              <button type="button" onclick="testBarkPush()" style="background:rgba(240,185,11,0.2); border:1px solid var(--alert-gold); color:var(--alert-gold); padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; white-space:nowrap;">
+                亮屏测试
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button type="button" onclick="testAlertNotification()" style="flex:1; background:rgba(240,185,11,0.15); border:1px solid var(--alert-gold); color:var(--alert-gold); padding:8px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+              🔔 测试界面提醒 (声音/震动/弹窗)
+            </button>
+            <button type="button" onclick="requestNotificationPermission()" style="background:#1E2833; border:1px solid #2B313A; color:#848E9C; padding:8px 12px; border-radius:6px; font-size:12px; cursor:pointer;">
+              授权系统通知
+            </button>
           </div>
         </div>
 
@@ -645,12 +756,268 @@
       }
     }
 
+    // === 全方位预警提醒引擎 (声音 / 震动 / 浮动横幅 / 系统通知) ===
+    let audioCtx = null;
+    let seenAlertIds = new Set();
+    let initialAlertsLoaded = false;
+    let ws = null;
+    let wsReconnectTimer = null;
+
+    // 浏览器用户手势解锁 AudioContext
+    function unlockAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+    ['click', 'touchstart', 'touchend', 'keydown'].forEach(evt => {
+      document.addEventListener(evt, unlockAudioContext, { once: true, passive: true });
+    });
+
+    // 1. 声音提醒 (双音阶警告合成音 880Hz -> 1320Hz，零网络加载依赖)
+    function playAlertSound() {
+      const cfgSound = document.getElementById("cfg-sound");
+      if (cfgSound && !cfgSound.checked) return;
+      try {
+        unlockAudioContext();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(880, now);
+        gain1.gain.setValueAtTime(0.35, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.14);
+
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(1320, now + 0.11);
+        gain2.gain.setValueAtTime(0.4, now + 0.11);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.11);
+        osc2.stop(now + 0.38);
+      } catch (e) {
+        console.warn("Audio alert error:", e);
+      }
+    }
+
+    // 2. 强震动提醒 (手机触感反馈)
+    function triggerVibration() {
+      const cfgVibrate = document.getElementById("cfg-vibrate");
+      if (cfgVibrate && !cfgVibrate.checked) return;
+      if (navigator.vibrate) {
+        try {
+          navigator.vibrate([180, 80, 180, 80, 240]);
+        } catch(e) {}
+      }
+    }
+
+    // 3. 系统/桌面通知授权与发送
+    function requestNotificationPermission() {
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            showCopyToast("✅ 系统通知授权成功！");
+          } else {
+            showCopyToast("提示: 系统通知权限未开启");
+          }
+        });
+      } else {
+        showCopyToast("当前浏览器不支持系统通知");
+      }
+    }
+
+    function sendSystemNotification(alert) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          const sym = alert.symbol || "代币";
+          const score = alert.score !== undefined ? ` (评分:${alert.score})` : "";
+          const title = `🚨 异动做空预警: ${sym}${score}`;
+          const body = alert.message || `${alert.rule_name || '均值回归信号'} 现价: $${alert.price || ''}`;
+          new Notification(title, {
+            body: body,
+            tag: alert.id || ("alert_" + Date.now()),
+            renotify: true
+          });
+        } catch(e) {}
+      }
+    }
+
+    // 4. 屏幕顶部高亮浮动横幅提醒 (可点击直达预警记录)
+    function showFloatingAlertBanner(alert) {
+      const container = document.getElementById("alert-banner-container");
+      if (!container) return;
+
+      const card = document.createElement("div");
+      card.className = "alert-banner-card";
+      
+      const sym = alert.symbol || "未知标的";
+      const timeStr = alert.time_str || new Date().toTimeString().split(' ')[0];
+      const score = alert.score !== undefined ? `评分 ${alert.score}` : "";
+      const priceStr = alert.price ? `$${alert.price}` : "";
+      const msg = alert.message || `${alert.rule_name || '异动信号'} 现价: ${priceStr}`;
+
+      card.innerHTML = `
+        <div class="alert-banner-header">
+          <div class="alert-banner-title">
+            <span>🚨</span>
+            <span>异动做空预警 · ${sym}</span>
+            ${score ? `<span style="font-size:10px; background:rgba(240,185,11,0.2); padding:1px 5px; border-radius:3px;">${score}</span>` : ""}
+          </div>
+          <button class="alert-banner-close" onclick="event.stopPropagation(); this.closest('.alert-banner-card').remove();">✕</button>
+        </div>
+        <div class="alert-banner-msg">${msg}</div>
+        <div class="alert-banner-meta">
+          <span>${timeStr} · 点击查看详情</span>
+          <span style="color:var(--alert-gold); font-weight:bold;">查看预警记录 ›</span>
+        </div>
+      `;
+
+      card.onclick = () => {
+        switchTab('alerts');
+        card.remove();
+      };
+
+      container.appendChild(card);
+
+      // 7 秒后自动淡出消失
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.style.animation = "alertFadeOut 0.3s ease forwards";
+          setTimeout(() => card.remove(), 300);
+        }
+      }, 7000);
+    }
+
+    // 核心预警分发枢纽
+    function handleIncomingAlert(alert, isRealtime = true) {
+      if (!alert) return;
+      const alertId = alert.id || (alert.timestamp ? `alt_${alert.timestamp}` : null);
+      if (alertId && seenAlertIds.has(alertId) && !alertId.startsWith("mock_")) return;
+      if (alertId) seenAlertIds.add(alertId);
+
+      // 首次加载历史时，仅记录 ID，不触发响铃骚扰
+      if (!initialAlertsLoaded && !isRealtime) {
+        return;
+      }
+
+      // 触发多模态提醒
+      playAlertSound();
+      triggerVibration();
+      showFloatingAlertBanner(alert);
+      sendSystemNotification(alert);
+
+      // 更新列表与角标
+      if (alert.id && !alert.id.startsWith("mock_")) {
+        const exists = alertsData.some(a => a.id === alert.id);
+        if (!exists) {
+          alertsData.unshift(alert);
+          renderAlerts();
+        }
+      }
+      updateBadge();
+    }
+
+    // 一键测试预警通知体验
+    async function testAlertNotification() {
+      unlockAudioContext();
+      
+      const mockAlert = {
+        id: "mock_" + Date.now(),
+        timestamp: Date.now() / 1000,
+        time_str: new Date().toTimeString().split(' ')[0],
+        rule_name: "脉冲急拉 / 均值回归信号",
+        symbol: "HOTUSDT",
+        is_perp: true,
+        price: 0.0004116,
+        change_24h: 15.1,
+        score: 75,
+        spike_pct: 6.8,
+        badges: ["15m急拉 +6.8%", "高位萎缩爆量", "负费率 -1.56%"],
+        message: "[HOTUSDT] 异动 (评分:75)：15分钟急拉 +6.8%，高位迅速萎缩爆量，负费率 -1.56%，现价: $0.0004116"
+      };
+
+      handleIncomingAlert(mockAlert, true);
+      showCopyToast("🔔 测试预警已触发 (声音/震动/弹窗)！");
+
+      // 请求后端广播，检验 WebSocket 链路
+      try {
+        await fetch(apiBase + "/api/alerts/mock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: "HOTUSDT",
+            priceChangePercent: 15.1,
+            lastPrice: 0.0004116,
+            quoteVolume: 54100000.0,
+            is_perp: true
+          })
+        });
+      } catch(e) {}
+    }
+
+    // WebSocket 实时秒级推送
+    function connectWebSocket() {
+      if (isFile) return;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/radar`;
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => console.log("WebSocket connected to radar");
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === "ANOMALY_ALERT" && msg.data) {
+              handleIncomingAlert(msg.data, true);
+            }
+          } catch(e) {}
+        };
+        ws.onclose = () => {
+          clearTimeout(wsReconnectTimer);
+          wsReconnectTimer = setTimeout(connectWebSocket, 4000);
+        };
+        ws.onerror = () => {
+          try { ws.close(); } catch(e) {}
+        };
+      } catch(e) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = setTimeout(connectWebSocket, 4000);
+      }
+    }
+
     async function fetchAlerts() {
       try {
         const res = await fetch(apiBase + "/api/alerts?t=" + Date.now(), { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          alertsData = data.alerts || [];
+          const incoming = data.alerts || [];
+
+          if (!initialAlertsLoaded) {
+            incoming.forEach(a => {
+              if (a.id) seenAlertIds.add(a.id);
+            });
+            initialAlertsLoaded = true;
+          } else {
+            // 轮询对比: 发现新未读报警时即刻触发提醒
+            incoming.forEach(a => {
+              if (a.id && !seenAlertIds.has(a.id) && !a.is_read) {
+                handleIncomingAlert(a, true);
+              }
+            });
+          }
+
+          alertsData = incoming;
           renderAlerts();
           updateBadge();
         }
@@ -1059,9 +1426,36 @@
           document.getElementById("cooldown-val").innerText = cd + " 分钟";
           document.getElementById("cfg-sound").checked = s.enable_sound !== false;
           document.getElementById("cfg-vibrate").checked = s.enable_vibrate !== false;
+          if (document.getElementById("cfg-bark-key")) {
+            document.getElementById("cfg-bark-key").value = s.bark_key || "";
+          }
         }
       } catch(e) {
         console.log("Load screening err:", e);
+      }
+    }
+
+    async function testBarkPush() {
+      const key = (document.getElementById("cfg-bark-key").value || "").trim();
+      if (!key) {
+        alert("请先粘贴你的 Bark Key 或链接！\n\n提示：在 iPhone 上免费下载 Bark App，打开后复制第一行的 Key 或链接粘贴到输入框即可。");
+        return;
+      }
+      showCopyToast("正在发送 iPhone 锁屏亮屏测试推送...");
+      try {
+        const res = await fetch(apiBase + "/api/push/test_bark", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bark_key: key })
+        });
+        const d = await res.json();
+        if (d.status === "ok") {
+          showCopyToast("✅ 推送已成功发出！请按手机锁屏键查看亮屏");
+        } else {
+          alert("推送失败: " + d.message);
+        }
+      } catch(e) {
+        alert("请求异常: " + e.message);
       }
     }
 
@@ -1082,7 +1476,8 @@
         enable_push: document.getElementById("cfg-enable-push").checked,
         cooldown_minutes: parseInt(document.getElementById("cfg-cooldown").value) || 5,
         enable_sound: document.getElementById("cfg-sound").checked,
-        enable_vibrate: document.getElementById("cfg-vibrate").checked
+        enable_vibrate: document.getElementById("cfg-vibrate").checked,
+        bark_key: (document.getElementById("cfg-bark-key") ? document.getElementById("cfg-bark-key").value : "").trim()
       };
 
       try {
@@ -1111,8 +1506,9 @@
       }
     }
 
-    // 页面初始化: 启动动态收缩雷达轮询与首次检测
+    // 页面初始化: 启动动态收缩雷达轮询、WebSocket 秒级推送与首次检测
     loadScreeningSettings();
+    connectWebSocket();
     triggerDetectionCycle();
     const urlParams = new URLSearchParams(window.location.search);
     const urlTab = urlParams.get("tab");

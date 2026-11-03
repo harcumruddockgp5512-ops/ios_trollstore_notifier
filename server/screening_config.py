@@ -20,7 +20,9 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "enable_push": True,
     "cooldown_minutes": 5,
     "enable_sound": True,
-    "enable_vibrate": True
+    "enable_vibrate": True,
+    "bark_key": "",                   # iOS 专属锁屏亮屏推送 (Bark Key / URL)
+    "webhook_url": ""                 # 自定义 Webhook 推送
 }
 
 class ScreeningConfigManager:
